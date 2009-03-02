@@ -25,6 +25,7 @@
 
 require 'open-uri'
 require 'cgi'
+require 'logger'
 
 module RubyEnom
   ALLOWED_TLDS = %w(com net org)
@@ -33,10 +34,22 @@ module RubyEnom
     :purchase => {}
   }
 
-  mattr_accessor :allow_any_tld
+  def self.allow_any_tld
+    @@allow_any_tld
+  end
+
+  def self.allow_any_tld=(value)
+    @@allow_any_tld = value
+  end
   self.allow_any_tld = false
 
-  mattr_accessor :default_logger
+  def self.default_logger
+    @@default_logger
+  end
+
+  def self.default_logger=(value)
+    @@default_logger = value
+  end
   self.default_logger = Logger.new(STDOUT)
 
   class Error < RuntimeError; end
