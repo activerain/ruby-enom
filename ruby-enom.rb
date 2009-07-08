@@ -53,6 +53,7 @@ module RubyEnom
   self.default_logger = Logger.new(STDOUT)
 
   class Error < RuntimeError; end
+  class RemoteError < Error; end
   class DomainError < Error; end
   class CommandError < Error; end
   class ConfigurationError < Error; end
@@ -108,10 +109,15 @@ module RubyEnom
         logger.info "About to execute eNom command '#{cmd}' with options '#{options.inspect}'"
         opts = full_options(cmd, options)
         validate_options(options)
-        open(make_url(opts)) do |stream|
-          resp = stream.read
-          logger.debug "Response from eNom: #{resp.inspect}"
-          response_class_for(cmd)[Hash.from_xml(resp)["interface_response"]]
+        begin
+          url_command = make_url(opts)
+          open(url_command) do |stream|
+            resp = stream.read
+            logger.debug "Response from eNom: #{resp.inspect}"
+            response_class_for(cmd)[Hash.from_xml(resp)["interface_response"]]
+          end
+        rescue OpenURI::HTTPError => e
+          raise RemoteError, "There was an error (#{e.message}) while trying to execute remote enom command: '#{url_command}'"
         end
       end
 
